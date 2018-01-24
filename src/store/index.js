@@ -19,29 +19,54 @@ export const store = new Vuex.Store({
     CHANGE_VISIBILITY (state, newVisibilityValue) {
       state.visibility = newVisibilityValue
     },
-    DEL_TODO (state, index) {
+    DELETE_TODO (state, index) {
       state.todos.splice(index, 1)
     },
-    STATUS_TODO (state, index) {
+    TOGGLE_TODO (state, index) {
       state.todos[index].completed = !state.todos[index].completed
+    },
+    CLEAR_COMPELETED_TODO (state) {
+      state.todos = state.todos.filter(todo => todo.completed === false)
+    },
+    LOAD (state, todos) {
+      state.todos = todos
     }
   },
   actions: {
-    addTodo ({commit}, title) {
+    addTodo ({commit, dispatch}, title) {
       commit('ADD_TODO', title)
+      dispatch('save')
     },
     changeVisibility ({commit}, newVisibilityValue) {
       commit('CHANGE_VISIBILITY', newVisibilityValue)
     },
-    delTodo ({commit}, index) {
-      commit('DEL_TODO', index)
+    deleteTodo ({commit, dispatch}, index) {
+      commit('DELETE_TODO', index)
+      dispatch('save')
     },
-    statusTodo ({commit}, index) {
-      commit('STATUS_TODO', index)
+    line ({commit, dispatch}, index) {
+      commit('TOGGLE_TODO', index)
+      dispatch('save')
+    },
+    clearCompeleted ({commit, dispatch}) {
+      commit('CLEAR_COMPELETED_TODO')
+      dispatch('save')
+    },
+    save ({state}) {
+      localStorage.setItem('todos', JSON.stringify(state.todos))
+    },
+    load ({commit}) {
+      let todos = localStorage.getItem('todos')
+      if (todos != null) {
+        commit('LOAD', JSON.parse(todos))
+      }
     }
   },
   getters: {
     todos: state => state.todos,
-    visibility: state => state.visibility
+    visibility: state => state.visibility,
+    count: state => state.todos.length,
+    countActives: state => state.todos.filter(todo => todo.completed === false).length,
+    countCompleted: state => state.todos.filter(todo => todo.completed === true).length
   }
 })
